@@ -11,8 +11,8 @@ from click.testing import CliRunner, Result
 
 import lib_cli_exit_tools
 
-from check_zpool_status import cli as cli_mod
-from check_zpool_status import __init__conf__
+from bitranox_template_cli_app_config_log import cli as cli_mod
+from bitranox_template_cli_app_config_log import __init__conf__
 
 
 @dataclass(slots=True)
@@ -246,7 +246,7 @@ def test_when_hello_is_invoked_the_cli_smiles(cli_runner: CliRunner) -> None:
     result: Result = cli_runner.invoke(cli_mod.cli, ["hello"])
 
     assert result.exit_code == 0
-    assert result.output == "Hello World\n"
+    assert "Hello World" in result.output
 
 
 @pytest.mark.os_agnostic
@@ -264,6 +264,180 @@ def test_when_info_is_invoked_the_metadata_is_displayed(cli_runner: CliRunner) -
     assert result.exit_code == 0
     assert f"Info for {__init__conf__.name}:" in result.output
     assert __init__conf__.version in result.output
+
+
+@pytest.mark.os_agnostic
+def test_when_config_is_invoked_it_displays_configuration(cli_runner: CliRunner) -> None:
+    result: Result = cli_runner.invoke(cli_mod.cli, ["config"])
+
+    assert result.exit_code == 0
+    # With default config (all commented), output may be empty or show only log messages
+
+
+@pytest.mark.os_agnostic
+def test_when_config_is_invoked_with_json_format_it_outputs_json(cli_runner: CliRunner) -> None:
+    result: Result = cli_runner.invoke(cli_mod.cli, ["config", "--format", "json"])
+
+    assert result.exit_code == 0
+    # JSON output should be valid (empty object if no config)
+    assert "{" in result.output
+
+
+@pytest.mark.os_agnostic
+def test_when_config_is_invoked_with_nonexistent_section_it_fails(cli_runner: CliRunner) -> None:
+    result: Result = cli_runner.invoke(cli_mod.cli, ["config", "--section", "nonexistent_section_that_does_not_exist"])
+
+    assert result.exit_code != 0
+    assert "not found or empty" in result.output
+
+
+@pytest.mark.os_agnostic
+def test_when_config_is_invoked_with_mocked_data_it_displays_sections(
+    cli_runner: CliRunner,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from lib_layered_config import Config
+
+    # Create a mock Config with test data
+    test_config_data = {
+        "test_section": {
+            "setting1": "value1",
+            "setting2": 42,
+        }
+    }
+
+    class MockConfig(Config):
+        def __init__(self) -> None:
+            pass
+
+        def as_dict(self) -> dict[str, Any]:
+            return test_config_data
+
+        def to_json(self, *, indent: int | None = None) -> str:
+            import json
+
+            return json.dumps(test_config_data, indent=indent)
+
+        def get(self, key: str, default: Any = None) -> Any:
+            return test_config_data.get(key, default)
+
+    # Clear the lru_cache on get_config
+    from bitranox_template_cli_app_config_log import config as config_mod
+    from bitranox_template_cli_app_config_log import config_show
+
+    config_mod.get_config.cache_clear()
+
+    # Mock get_config to return our test config
+    def mock_get_config(**kwargs: Any) -> Config:
+        return MockConfig()
+
+    # Patch in both modules to ensure the mock is used
+    monkeypatch.setattr(config_mod, "get_config", mock_get_config)
+    monkeypatch.setattr(config_show, "get_config", mock_get_config)
+
+    result: Result = cli_runner.invoke(cli_mod.cli, ["config"])
+
+    assert result.exit_code == 0
+    assert "test_section" in result.output
+    assert "setting1" in result.output
+    assert "value1" in result.output
+
+
+@pytest.mark.os_agnostic
+def test_when_config_deploy_is_invoked_without_target_it_fails(cli_runner: CliRunner) -> None:
+    result: Result = cli_runner.invoke(cli_mod.cli, ["config-deploy"])
+
+    assert result.exit_code != 0
+    assert "Missing option" in result.output or "required" in result.output.lower()
+
+
+@pytest.mark.os_agnostic
+def test_when_config_deploy_is_invoked_it_deploys_configuration(
+    cli_runner: CliRunner,
+    tmp_path: Any,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from pathlib import Path
+
+    # Mock deploy_configuration to return a test path without actually deploying
+    deployed_path = tmp_path / "config.toml"
+    deployed_path.touch()
+
+    def mock_deploy(*, targets: Any, force: bool = False) -> list[Path]:
+        return [deployed_path]
+
+    # Patch in the cli module where the function is used
+    monkeypatch.setattr(cli_mod, "deploy_configuration", mock_deploy)
+
+    result: Result = cli_runner.invoke(cli_mod.cli, ["config-deploy", "--target", "user"])
+
+    assert result.exit_code == 0
+    assert "Configuration deployed successfully" in result.output
+    assert str(deployed_path) in result.output
+
+
+@pytest.mark.os_agnostic
+def test_when_config_deploy_finds_no_files_to_create_it_informs_user(
+    cli_runner: CliRunner,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from pathlib import Path
+
+    def mock_deploy(*, targets: Any, force: bool = False) -> list[Path]:
+        return []  # No files created
+
+    monkeypatch.setattr(cli_mod, "deploy_configuration", mock_deploy)
+
+    result: Result = cli_runner.invoke(cli_mod.cli, ["config-deploy", "--target", "user"])
+
+    assert result.exit_code == 0
+    assert "No files were created" in result.output
+    assert "--force" in result.output
+
+
+@pytest.mark.os_agnostic
+def test_when_config_deploy_encounters_permission_error_it_handles_gracefully(
+    cli_runner: CliRunner,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def mock_deploy(*, targets: Any, force: bool = False) -> list[Any]:
+        raise PermissionError("Permission denied")
+
+    monkeypatch.setattr(cli_mod, "deploy_configuration", mock_deploy)
+
+    result: Result = cli_runner.invoke(cli_mod.cli, ["config-deploy", "--target", "app"])
+
+    assert result.exit_code != 0
+    assert "Permission denied" in result.output
+    assert "sudo" in result.output.lower()
+
+
+@pytest.mark.os_agnostic
+def test_when_config_deploy_supports_multiple_targets(
+    cli_runner: CliRunner,
+    tmp_path: Any,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from pathlib import Path
+
+    path1 = tmp_path / "config1.toml"
+    path2 = tmp_path / "config2.toml"
+    path1.touch()
+    path2.touch()
+
+    def mock_deploy(*, targets: Any, force: bool = False) -> list[Path]:
+        assert len(targets) == 2
+        assert "user" in targets
+        assert "host" in targets
+        return [path1, path2]
+
+    monkeypatch.setattr(cli_mod, "deploy_configuration", mock_deploy)
+
+    result: Result = cli_runner.invoke(cli_mod.cli, ["config-deploy", "--target", "user", "--target", "host"])
+
+    assert result.exit_code == 0
+    assert str(path1) in result.output
+    assert str(path2) in result.output
 
 
 @pytest.mark.os_agnostic

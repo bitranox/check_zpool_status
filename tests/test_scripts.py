@@ -156,15 +156,15 @@ def _capture_sync(record: list[ProjectMetadata]) -> Callable[[ProjectMetadata], 
 @pytest.mark.os_agnostic
 def test_get_project_metadata_fields():
     meta = _utils.get_project_metadata()
-    assert meta.name == "check_zpool_status"
-    assert meta.slug == "check-zpool-status"
-    assert meta.import_package == "check_zpool_status"
-    assert meta.coverage_source == "src/check_zpool_status"
-    assert meta.github_tarball_url("1.2.3").endswith("/bitranox/check_zpool_status/archive/refs/tags/v1.2.3.tar.gz")
+    assert meta.name == "bitranox_template_cli_app_config_log"
+    assert meta.slug == "bitranox-template-cli-app-config-log"
+    assert meta.import_package == "bitranox_template_cli_app_config_log"
+    assert meta.coverage_source == "src/bitranox_template_cli_app_config_log"
+    assert meta.github_tarball_url("1.2.3").endswith("/bitranox/bitranox_template_cli_app_config_log/archive/refs/tags/v1.2.3.tar.gz")
     assert meta.version
     assert meta.summary
     assert meta.author_name
-    assert meta.metadata_module.as_posix().endswith("src/check_zpool_status/__init__conf__.py")
+    assert meta.metadata_module.as_posix().endswith("src/bitranox_template_cli_app_config_log/__init__conf__.py")
 
 
 @pytest.mark.os_agnostic

@@ -1,16 +1,18 @@
 [project]
-name = "check_zpool_status"
+name = "bitranox_template_cli_app_config_log"
 version = "0.0.1"
-description = "Command-line helper to inspect and report ZFS pool status"
+description = "Template CLI application with configuration management and structured logging"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "rich-click>=1.9.4",
     "lib_cli_exit_tools>=2.1.0",
+    "lib_log_rich>=5.2.0",
+    "lib_layered_config>=1.1.1",
 ]
 license = { text = "MIT" }
 authors = [{ name = "bitranox", email = "bitranox@gmail.com" }]
-keywords = ["zfs", "pool", "check", "report", "email", "log"]
+keywords = ["cli", "template", "config", "logging", "layered-config", "rich-click"]
 classifiers = [
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3 :: Only",
@@ -21,9 +23,9 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/bitranox/check_zpool_status"
-Repository = "https://github.com/bitranox/check_zpool_status.git"
-Issues = "https://github.com/bitranox/check_zpool_status/issues"
+Homepage = "https://github.com/bitranox/bitranox_template_cli_app_config_log"
+Repository = "https://github.com/bitranox/bitranox_template_cli_app_config_log.git"
+Issues = "https://github.com/bitranox/bitranox_template_cli_app_config_log/issues"
 
 [project.optional-dependencies]
 dev = [
@@ -41,8 +43,8 @@ dev = [
 ]
 
 [project.scripts]
-check_zpool_status = "check_zpool_status.cli:main"
-check-zpool-status = "check_zpool_status.cli:main"
+bitranox_template_cli_app_config_log = "bitranox_template_cli_app_config_log.cli:main"
+bitranox-template-cli-app-config-log = "bitranox_template_cli_app_config_log.cli:main"
 
 [build-system]
 requires = ["hatchling>=1.27.0"]
@@ -51,8 +53,8 @@ build-backend = "hatchling.build"
 
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/check_zpool_status"]
-include = ["src/check_zpool_status/py.typed"]
+packages = ["src/bitranox_template_cli_app_config_log"]
+include = ["src/bitranox_template_cli_app_config_log/py.typed", "src/bitranox_template_cli_app_config_log/defaultconfig.toml"]
 
 [tool.ruff]
 line-length = 160
@@ -87,7 +89,7 @@ markers = [
 branch = true
 parallel = false
 data_file = ".coverage.unit"
-source = ["src/check_zpool_status"]
+source = ["src/bitranox_template_cli_app_config_log"]
 
 [tool.coverage.report]
 omit = [
@@ -97,12 +99,12 @@ fail_under = 85
 show_missing = true
 
 [tool.importlinter]
-root_package = "check_zpool_status"
+root_package = "bitranox_template_cli_app_config_log"
 
 [[tool.importlinter.contracts]]
 name = "CLI depends on behaviors only"
 type = "layers"
 layers = [
-  "check_zpool_status.cli",
-  "check_zpool_status.behaviors",
+  "bitranox_template_cli_app_config_log.cli",
+  "bitranox_template_cli_app_config_log.behaviors",
 ]

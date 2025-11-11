@@ -20,19 +20,26 @@ present authoritative project information without invoking packaging APIs.
 from __future__ import annotations
 
 #: Distribution name declared in ``pyproject.toml``.
-name = "check_zpool_status"
+name = "bitranox_template_cli_app_config_log"
 #: Human-readable summary shown in CLI help output.
-title = "Command-line helper to inspect and report ZFS pool status"
+title = "Template CLI application with configuration management and structured logging"
 #: Current release version pulled from ``pyproject.toml`` by automation.
 version = "0.0.1"
 #: Repository homepage presented to users.
-homepage = "https://github.com/bitranox/check_zpool_status"
+homepage = "https://github.com/bitranox/bitranox_template_cli_app_config_log"
 #: Author attribution surfaced in CLI output.
 author = "bitranox"
 #: Contact email surfaced in CLI output.
 author_email = "bitranox@gmail.com"
 #: Console-script name published by the package.
-shell_command = "check-zpool-status"
+shell_command = "bitranox-template-cli-app-config-log"
+
+#: Vendor identifier for lib_layered_config paths (macOS/Windows)
+LAYEREDCONF_VENDOR: str = "bitranox"
+#: Application display name for lib_layered_config paths (macOS/Windows)
+LAYEREDCONF_APP: str = "Bitranox Template Cli App Config Log"
+#: Configuration slug for lib_layered_config Linux paths and environment variables
+LAYEREDCONF_SLUG: str = "bitranox-template-cli-app-config-log"
 
 
 def print_info() -> None:
@@ -48,7 +55,7 @@ def print_info() -> None:
     Examples
     --------
     >>> print_info()  # doctest: +ELLIPSIS
-    Info for check_zpool_status:
+    Info for bitranox_template_cli_app_config_log:
     ...
     """
 

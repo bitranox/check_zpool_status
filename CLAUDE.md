@@ -1,4 +1,4 @@
-# Claude Code Guidelines for check_zpool_status
+# Claude Code Guidelines for bitranox_template_cli_app_config_log
 
 ## Session Initialization
 
@@ -33,7 +33,7 @@ When working with Python code:
 ## Project Structure
 
 ```
-check_zpool_status/
+bitranox_template_cli_app_config_log/
 ├── .github/
 │   └── workflows/              # GitHub Actions CI/CD workflows
 ├── .devcontainer/              # Dev container configuration
@@ -50,7 +50,7 @@ check_zpool_status/
 │   ├── menu.py                # Interactive TUI menu
 │   └── _utils.py              # Shared utilities
 ├── src/
-│   └── check_zpool_status/  # Main Python package
+│   └── bitranox_template_cli_app_config_log/  # Main Python package
 │       ├── __init__.py        # Package initialization
 │       ├── __init__conf__.py  # Configuration loader
 │       ├── __main__.py        # CLI entry point
@@ -74,7 +74,7 @@ check_zpool_status/
 
 - **Single Source of Truth**: Package version is in `pyproject.toml` (`[project].version`)
 - **Version Bumps**: update `pyproject.toml` , `CHANGELOG.md` and update the constants in `src/../__init__conf__.py` according to `pyproject.toml`  
-    - Automation rewrites `src/check_zpool_status/__init__conf__.py` from `pyproject.toml`, so runtime code imports generated constants instead of querying `importlib.metadata`.
+    - Automation rewrites `src/bitranox_template_cli_app_config_log/__init__conf__.py` from `pyproject.toml`, so runtime code imports generated constants instead of querying `importlib.metadata`.
     - After updating project metadata (version, summary, URLs, authors) run `make test` (or `python -m scripts.test`) to regenerate the metadata module before committing.
 - **Release Tags**: Format is `vX.Y.Z` (push tags for CI to build and publish)
 

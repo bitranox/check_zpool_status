@@ -12,7 +12,7 @@ import pytest
 
 import lib_cli_exit_tools
 
-from check_zpool_status import __init__conf__, cli as cli_mod
+from bitranox_template_cli_app_config_log import __init__conf__, cli as cli_mod
 
 
 @dataclass(slots=True)
@@ -72,7 +72,7 @@ def _record_print_message(target: list[PrintedTraceback]) -> Callable[..., None]
 def test_when_module_entry_returns_zero_the_story_matches_cli(monkeypatch: pytest.MonkeyPatch) -> None:
     ledger: dict[str, object] = {}
 
-    monkeypatch.setattr(sys, "argv", ["check_zpool_status"], raising=False)
+    monkeypatch.setattr(sys, "argv", ["bitranox_template_cli_app_config_log"], raising=False)
 
     def fake_run_cli(
         command: object,
@@ -90,7 +90,7 @@ def test_when_module_entry_returns_zero_the_story_matches_cli(monkeypatch: pytes
     monkeypatch.setattr("lib_cli_exit_tools.application.runner.run_cli", fake_run_cli)
 
     with pytest.raises(SystemExit) as exc:
-        runpy.run_module("check_zpool_status.__main__", run_name="__main__")
+        runpy.run_module("bitranox_template_cli_app_config_log.__main__", run_name="__main__")
 
     assert exc.value.code == 0
     assert ledger["command"] is cli_mod.cli
@@ -101,7 +101,7 @@ def test_when_module_entry_returns_zero_the_story_matches_cli(monkeypatch: pytes
 def test_when_module_entry_raises_the_exit_helpers_format_the_song(monkeypatch: pytest.MonkeyPatch) -> None:
     printed: list[PrintedTraceback] = []
     codes: list[str] = []
-    monkeypatch.setattr(sys, "argv", ["check_zpool_status"], raising=False)
+    monkeypatch.setattr(sys, "argv", ["bitranox_template_cli_app_config_log"], raising=False)
     monkeypatch.setattr(lib_cli_exit_tools.config, "traceback", False, raising=False)
     monkeypatch.setattr(lib_cli_exit_tools.config, "traceback_force_color", False, raising=False)
 
@@ -129,7 +129,7 @@ def test_when_module_entry_raises_the_exit_helpers_format_the_song(monkeypatch: 
     monkeypatch.setattr("lib_cli_exit_tools.application.runner.run_cli", exploding_run_cli)
 
     with pytest.raises(SystemExit) as exc:
-        runpy.run_module("check_zpool_status.__main__", run_name="__main__")
+        runpy.run_module("bitranox_template_cli_app_config_log.__main__", run_name="__main__")
 
     assert exc.value.code == 88
     assert printed == [PrintedTraceback(trace_back=False, length_limit=500, stream_present=False)]
@@ -147,7 +147,7 @@ def test_when_traceback_flag_is_used_via_module_entry_the_full_poem_is_printed(
     monkeypatch.setattr(lib_cli_exit_tools.config, "traceback_force_color", False, raising=False)
 
     with pytest.raises(SystemExit) as exc:
-        runpy.run_module("check_zpool_status.__main__", run_name="__main__")
+        runpy.run_module("bitranox_template_cli_app_config_log.__main__", run_name="__main__")
 
     plain_err = strip_ansi(capsys.readouterr().err)
 

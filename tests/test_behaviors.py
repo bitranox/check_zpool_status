@@ -7,7 +7,7 @@ from io import StringIO
 
 import pytest
 
-from check_zpool_status import behaviors
+from bitranox_template_cli_app_config_log import behaviors
 
 
 @pytest.mark.os_agnostic

@@ -28,7 +28,6 @@ import shlex
 import shutil
 import subprocess
 import sys
-import tomllib
 import textwrap
 from dataclasses import dataclass
 from pathlib import Path
@@ -37,14 +36,14 @@ from typing import Any, Mapping, Sequence, cast
 from urllib.parse import urlparse
 
 
-@dataclass(slots=True)
+@dataclass
 class RunResult:
     code: int
     out: str
     err: str
 
 
-@dataclass(slots=True)
+@dataclass
 class ProjectMetadata:
     name: str
     description: str
@@ -105,6 +104,41 @@ class ProjectMetadata:
 
 _PYPROJECT_DATA_CACHE: dict[Path, dict[str, object]] = {}
 _METADATA_CACHE: dict[Path, ProjectMetadata] = {}
+_toml_module: Any = None
+
+
+def _get_toml_module() -> Any:
+    """Return tomllib (Python 3.11+) or tomli backport (Python 3.9-3.10).
+
+    Purpose
+    -------
+    Ensure TOML parsing works across Python 3.9+ by using the standard
+    library tomllib on 3.11+ and falling back to the tomli package
+    on earlier versions.
+
+    Returns
+    -------
+    module
+        Either tomllib or tomli with identical interfaces.
+
+    Raises
+    ------
+    ModuleNotFoundError
+        If neither tomllib nor tomli can be imported.
+    """
+    global _toml_module
+    if _toml_module is not None:
+        return _toml_module
+
+    # Use tomllib (Python 3.11+) or tomli backport (Python 3.9-3.10)
+    # Both have the same interface, so we can treat them interchangeably
+    try:
+        import tomllib as module  # type: ignore[import-not-found]
+    except ModuleNotFoundError:
+        import tomli as module  # type: ignore[import-not-found,no-redef]
+
+    _toml_module = module
+    return module
 
 
 def run(
@@ -149,6 +183,19 @@ def _normalize_slug(value: str) -> str:
     return slug or value.replace("_", "-").lower()
 
 
+def _package_name_to_display(value: str) -> str:
+    """Convert package name to display-friendly app name.
+
+    Examples:
+        "check_zpool_status" -> "Check ZPool Status"
+        "my-cool-app" -> "My Cool App"
+    """
+    # Replace underscores and hyphens with spaces
+    normalized = value.replace("_", " ").replace("-", " ")
+    # Title case each word
+    return " ".join(word.capitalize() for word in normalized.split())
+
+
 def _as_str_mapping(value: object) -> dict[str, object]:
     """Return a shallow copy of mapping entries with string keys."""
 
@@ -188,9 +235,10 @@ def _load_pyproject(pyproject: Path) -> dict[str, object]:
     if cached is not None:
         return cached
     raw_text = path.read_text(encoding="utf-8")
+    toml_module = _get_toml_module()
     try:
-        parsed_obj = tomllib.loads(raw_text)
-    except tomllib.TOMLDecodeError as exc:  # pragma: no cover - invalid pyproject fails fast
+        parsed_obj = toml_module.loads(raw_text)
+    except toml_module.TOMLDecodeError as exc:  # pragma: no cover - invalid pyproject fails fast
         msg = f"Unable to parse {path}: {exc}"
         raise ValueError(msg) from exc
     data = {str(key): value for key, value in parsed_obj.items()}
@@ -421,6 +469,13 @@ author = {_quote(project.author_name)}
 author_email = {_quote(project.author_email)}
 #: Console-script name published by the package.
 shell_command = {_quote(project.shell_command)}
+
+#: Vendor identifier for lib_layered_config paths (macOS/Windows)
+LAYEREDCONF_VENDOR: str = {_quote(project.author_name)}
+#: Application display name for lib_layered_config paths (macOS/Windows)
+LAYEREDCONF_APP: str = {_quote(_package_name_to_display(project.name))}
+#: Configuration slug for lib_layered_config Linux paths and environment variables
+LAYEREDCONF_SLUG: str = {_quote(project.shell_command)}
 
 
 def print_info() -> None:

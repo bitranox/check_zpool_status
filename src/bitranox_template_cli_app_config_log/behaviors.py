@@ -26,10 +26,14 @@ from __future__ import annotations
 
 from typing import TextIO
 
+import logging
 import sys
 
 
 CANONICAL_GREETING = "Hello World"
+
+#: Module logger using standard logging interface.
+logger = logging.getLogger(__name__)
 
 
 def _target_stream(preferred: TextIO | None) -> TextIO:
@@ -72,7 +76,7 @@ def emit_greeting(*, stream: TextIO | None = None) -> None:
 
     Side Effects
         Writes to the target stream and flushes it when a ``flush`` attribute is
-        available.
+        available. Emits an INFO-level log message.
 
     Examples
     --------
@@ -83,6 +87,7 @@ def emit_greeting(*, stream: TextIO | None = None) -> None:
     True
     """
 
+    logger.info("Emitting canonical greeting", extra={"greeting": CANONICAL_GREETING})
     target = _target_stream(stream)
     target.write(_greeting_line())
     _flush_if_possible(target)
@@ -99,7 +104,7 @@ def raise_intentional_failure() -> None:
         Always raises ``RuntimeError`` with the message ``"I should fail"``.
 
     Side Effects
-        None beyond raising the exception.
+        Emits an ERROR-level log message before raising the exception.
 
     Raises
         RuntimeError: Regardless of input.
@@ -112,6 +117,7 @@ def raise_intentional_failure() -> None:
     RuntimeError: I should fail
     """
 
+    logger.error("About to raise intentional failure for testing", extra={"test_mode": True})
     raise RuntimeError("I should fail")
 
 
@@ -127,13 +133,14 @@ def noop_main() -> None:
         Performs no work and returns immediately.
 
     Side Effects
-        None.
+        Emits a DEBUG-level log message indicating the no-op execution.
 
     Examples
     --------
     >>> noop_main()
     """
 
+    logger.debug("Executing noop_main placeholder")
     return None
 
 

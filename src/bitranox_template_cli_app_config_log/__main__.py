@@ -2,9 +2,9 @@
 
 Purpose
 -------
-Provide the ``python -m check_zpool_status`` path mandated by the
+Provide the ``python -m bitranox_template_cli_app_config_log`` path mandated by the
 project's packaging guidelines. The wrapper delegates to
-:func:`check_zpool_status.cli.main` so that module execution mirrors the
+:func:`bitranox_template_cli_app_config_log.cli.main` so that module execution mirrors the
 installed console script, including traceback handling and exit-code mapping.
 
 Contents
@@ -22,13 +22,16 @@ documented in ``docs/systemdesign/module_reference.md``.
 """
 
 from __future__ import annotations
-
+import logging
 from typing import Callable, ContextManager, Final
 
 from lib_cli_exit_tools import cli_session
+import lib_log_rich.runtime
+
 import rich_click as click
 
 from . import __init__conf__, cli
+from .logging_setup import init_logging
 
 # Match the CLI defaults so truncation behaviour stays consistent across entry
 # points regardless of whether users call the console script or ``python -m``.
@@ -39,6 +42,7 @@ TRACEBACK_VERBOSE_LIMIT: Final[int] = cli.TRACEBACK_VERBOSE_LIMIT
 
 
 CommandRunner = Callable[..., int]
+logger = logging.getLogger(__name__)
 
 
 def _open_cli_session() -> ContextManager[CommandRunner]:
@@ -93,19 +97,26 @@ def _module_main() -> int:
     """Execute the CLI entry point and return a normalised exit code.
 
     Why
-        Implements ``python -m check_zpool_status`` by delegating to the
+        Implements ``python -m bitranox_template_cli_app_config_log`` by delegating to the
         shared CLI composition while respecting the configured traceback
         budgets.
 
     Outputs
         int: Exit code reported by the CLI run.
+
+    Side Effects
+        Initializes and shuts down the lib_log_rich runtime.
     """
 
-    with _open_cli_session() as run:
-        return run(
-            _command_to_run(),
-            prog_name=_command_name(),
-        )
+    init_logging()
+    try:
+        with _open_cli_session() as run:
+            return run(
+                _command_to_run(),
+                prog_name=_command_name(),
+            )
+    finally:
+        lib_log_rich.runtime.shutdown()
 
 
 if __name__ == "__main__":

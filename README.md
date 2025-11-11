@@ -1,19 +1,21 @@
-# check_zpool_status
+# bitranox_template_cli_app_config_log
 
 <!-- Badges -->
-[![CI](https://github.com/bitranox/check_zpool_status/actions/workflows/ci.yml/badge.svg)](https://github.com/bitranox/check_zpool_status/actions/workflows/ci.yml)
-[![CodeQL](https://github.com/bitranox/check_zpool_status/actions/workflows/codeql.yml/badge.svg)](https://github.com/bitranox/check_zpool_status/actions/workflows/codeql.yml)
+[![CI](https://github.com/bitranox/bitranox_template_cli_app_config_log/actions/workflows/ci.yml/badge.svg)](https://github.com/bitranox/bitranox_template_cli_app_config_log/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/bitranox/bitranox_template_cli_app_config_log/actions/workflows/codeql.yml/badge.svg)](https://github.com/bitranox/bitranox_template_cli_app_config_log/actions/workflows/codeql.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Open in Codespaces](https://img.shields.io/badge/Codespaces-Open-blue?logo=github&logoColor=white&style=flat-square)](https://codespaces.new/bitranox/check_zpool_status?quickstart=1)
-[![PyPI](https://img.shields.io/pypi/v/check_zpool_status.svg)](https://pypi.org/project/check_zpool_status/)
-[![PyPI - Downloads](https://img.shields.io/pypi/dm/check_zpool_status.svg)](https://pypi.org/project/check_zpool_status/)
+[![Open in Codespaces](https://img.shields.io/badge/Codespaces-Open-blue?logo=github&logoColor=white&style=flat-square)](https://codespaces.new/bitranox/bitranox_template_cli_app_config_log?quickstart=1)
+[![PyPI](https://img.shields.io/pypi/v/bitranox_template_cli_app_config_log.svg)](https://pypi.org/project/bitranox_template_cli_app_config_log/)
+[![PyPI - Downloads](https://img.shields.io/pypi/dm/bitranox_template_cli_app_config_log.svg)](https://pypi.org/project/bitranox_template_cli_app_config_log/)
 [![Code Style: Ruff](https://img.shields.io/badge/Code%20Style-Ruff-46A3FF?logo=ruff&labelColor=000)](https://docs.astral.sh/ruff/)
-[![codecov](https://codecov.io/gh/bitranox/check_zpool_status/graph/badge.svg?token=UFBaUDIgRk)](https://codecov.io/gh/bitranox/check_zpool_status)
-[![Maintainability](https://qlty.sh/badges/041ba2c1-37d6-40bb-85a0-ec5a8a0aca0c/maintainability.svg)](https://qlty.sh/gh/bitranox/projects/check_zpool_status)
-[![Known Vulnerabilities](https://snyk.io/test/github/bitranox/check_zpool_status/badge.svg)](https://snyk.io/test/github/bitranox/check_zpool_status)
+[![codecov](https://codecov.io/gh/bitranox/bitranox_template_cli_app_config_log/graph/badge.svg?token=UFBaUDIgRk)](https://codecov.io/gh/bitranox/bitranox_template_cli_app_config_log)
+[![Maintainability](https://qlty.sh/badges/041ba2c1-37d6-40bb-85a0-ec5a8a0aca0c/maintainability.svg)](https://qlty.sh/gh/bitranox/projects/bitranox_template_cli_app_config_log)
+[![Known Vulnerabilities](https://snyk.io/test/github/bitranox/bitranox_template_cli_app_config_log/badge.svg)](https://snyk.io/test/github/bitranox/bitranox_template_cli_app_config_log)
 
-`check_zpool_status` is a starter CLI for monitoring ZFS pools. It keeps the interface opinionated—rich-click drives ergonomics while lib_cli_exit_tools handles exits—so you can focus on wiring real `zpool status` calls.
+`bitranox_template_cli_app_config_log` is a template CLI application demonstrating configuration management and structured logging. It showcases rich-click for ergonomics and lib_cli_exit_tools for exits, providing a solid foundation for building CLI applications.
 - CLI entry point styled with rich-click (rich output + click ergonomics).
+- Layered configuration system with lib_layered_config (defaults → app → host → user → .env → env).
+- Rich structured logging with lib_log_rich (console, journald, eventlog, Graylog/GELF).
 - Exit-code and messaging helpers powered by lib_cli_exit_tools.
 - Metadata helpers ready for packaging, testing, and release automation.
 
@@ -30,12 +32,12 @@ source .venv/bin/activate
 # Windows (PowerShell)
 .venv\Scripts\Activate.ps1
 # install via uv from PyPI
-uv pip install check_zpool_status
+uv pip install bitranox_template_cli_app_config_log
 ```
 
 For alternative install paths (pip, pipx, uv, uvx source builds, etc.), see
 [INSTALL.md](INSTALL.md). All supported methods register both the
-`check_zpool_status` and `check-zpool-status` commands on your PATH.
+`bitranox_template_cli_app_config_log` and `bitranox-template-cli-app-config-log` commands on your PATH.
 
 ### Python 3.13+ Baseline
 
@@ -52,32 +54,116 @@ For alternative install paths (pip, pipx, uv, uvx source builds, etc.), see
 ## Usage
 
 The CLI leverages [rich-click](https://github.com/ewels/rich-click) so help output, validation errors, and prompts render with Rich styling while keeping the familiar click ergonomics.
-The scaffold keeps a CLI entry point so you can validate packaging flows, but it
-currently exposes a single informational command while logging features are
-developed:
+
+### Available Commands
 
 ```bash
-check_zpool_status info
-check_zpool_status hello
-check_zpool_status fail
-check_zpool_status --traceback fail
-check-zpool-status info
-python -m check_zpool_status info
-uvx check_zpool_status info
+# Display package information
+bitranox-template-cli-app-config-log info
+
+# Test commands for development
+bitranox-template-cli-app-config-log hello
+bitranox-template-cli-app-config-log fail
+bitranox-template-cli-app-config-log --traceback fail
+
+# Configuration management
+bitranox-template-cli-app-config-log config                    # Show current configuration
+bitranox-template-cli-app-config-log config --format json      # Show as JSON
+bitranox-template-cli-app-config-log config --section lib_log_rich  # Show specific section
+bitranox-template-cli-app-config-log config-deploy --target user    # Deploy config to user directory
+bitranox-template-cli-app-config-log config-deploy --target user --target host  # Deploy to multiple locations
+
+# All commands work with any entry point
+python -m bitranox_template_cli_app_config_log info
+uvx bitranox_template_cli_app_config_log info
 ```
 
-For library use you can import the documented helpers directly:
+### Configuration Management
+
+The application uses [lib_layered_config](https://github.com/bitranox/lib_layered_config) for hierarchical configuration with the following precedence (lowest to highest):
+
+**defaults → app → host → user → .env → environment variables**
+
+#### Configuration Locations
+
+Platform-specific paths:
+- **Linux (user)**: `~/.config/bitranox-template-cli-app-config-log/config.toml`
+- **Linux (app)**: `/etc/xdg/bitranox-template-cli-app-config-log/config.toml`
+- **Linux (host)**: `/etc/bitranox-template-cli-app-config-log/hosts/{hostname}.toml`
+- **macOS (user)**: `~/Library/Application Support/bitranox/Bitranox Template CLI App Config Log/config.toml`
+- **Windows (user)**: `%APPDATA%\bitranox\Bitranox Template CLI App Config Log\config.toml`
+
+#### View Configuration
+
+```bash
+# Show merged configuration from all sources
+bitranox-template-cli-app-config-log config
+
+# Show as JSON for scripting
+bitranox-template-cli-app-config-log config --format json
+
+# Show specific section only
+bitranox-template-cli-app-config-log config --section lib_log_rich
+```
+
+#### Deploy Configuration Files
+
+```bash
+# Create user configuration file
+bitranox-template-cli-app-config-log config-deploy --target user
+
+# Deploy to system-wide location (requires privileges)
+sudo bitranox-template-cli-app-config-log config-deploy --target app
+
+# Deploy to multiple locations at once
+bitranox-template-cli-app-config-log config-deploy --target user --target host
+
+# Overwrite existing configuration
+bitranox-template-cli-app-config-log config-deploy --target user --force
+```
+
+#### Environment Variable Overrides
+
+Configuration can be overridden via environment variables using two methods:
+
+**Method 1: Native lib_log_rich variables (highest precedence)**
+```bash
+LOG_CONSOLE_LEVEL=DEBUG bitranox-template-cli-app-config-log hello
+LOG_ENABLE_GRAYLOG=true LOG_GRAYLOG_ENDPOINT="logs.example.com:12201" bitranox-template-cli-app-config-log hello
+```
+
+**Method 2: Application-prefixed variables**
+```bash
+BITRANOX_TEMPLATE_CLI_APP_CONFIG_LOG_LIB_LOG_RICH_CONSOLE_LEVEL=DEBUG bitranox-template-cli-app-config-log hello
+```
+
+#### .env File Support
+
+Create a `.env` file in your project directory for local development:
+
+```bash
+# .env
+LOG_CONSOLE_LEVEL=DEBUG
+LOG_CONSOLE_FORMAT_PRESET=short
+LOG_ENABLE_GRAYLOG=false
+```
+
+The application automatically discovers and loads `.env` files from the current directory or parent directories.
+
+### Library Use
+
+You can import the documented helpers directly:
 
 ```python
-import check_zpool_status as btpc
+import bitranox_template_cli_app_config_log as btcacl
 
-btpc.emit_greeting()
+btcacl.emit_greeting()
 try:
-    btpc.raise_intentional_failure()
+    btcacl.raise_intentional_failure()
 except RuntimeError as exc:
     print(f"caught expected failure: {exc}")
 
-btpc.print_info()
+btcacl.print_info()
 ```
 
 

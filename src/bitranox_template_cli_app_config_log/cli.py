@@ -4,7 +4,7 @@ Purpose
 -------
 Expose a stable command-line surface so tooling, documentation, and packaging
 automation can be exercised while the richer logging helpers are being built.
-By delegating to :mod:`check_zpool_status.behaviors` the transport stays
+By delegating to :mod:`bitranox_template_cli_app_config_log.behaviors` the transport stays
 aligned with the Clean Code rules captured in
 ``docs/systemdesign/module_reference.md``.
 
@@ -32,22 +32,26 @@ Contents
 System Role
 -----------
 The CLI is the primary adapter for local development workflows; packaging
-targets register the console script defined in :mod:`check_zpool_status.__init__conf__`.
+targets register the console script defined in :mod:`bitranox_template_cli_app_config_log.__init__conf__`.
 Other transports (including ``python -m`` execution) reuse the same helpers so
 behaviour remains consistent regardless of entry point.
 """
 
 from __future__ import annotations
-
+import logging
 from typing import Final, Optional, Sequence, Tuple
 
 import rich_click as click
 
 import lib_cli_exit_tools
+import lib_log_rich.runtime
 from click.core import ParameterSource
 
 from . import __init__conf__
 from .behaviors import emit_greeting, noop_main, raise_intentional_failure
+from .config_deploy import deploy_configuration
+from .config_show import display_config
+from .logging_setup import init_logging
 
 #: Shared Click context flags so help output stays consistent across commands.
 CLICK_CONTEXT_SETTINGS = {"help_option_names": ["-h", "--help"]}  # noqa: C408
@@ -56,6 +60,8 @@ TRACEBACK_SUMMARY_LIMIT: Final[int] = 500
 #: Character budget used when verbose tracebacks are enabled.
 TRACEBACK_VERBOSE_LIMIT: Final[int] = 10_000
 TracebackState = Tuple[bool, bool]
+
+logger = logging.getLogger(__name__)
 
 
 def apply_traceback_preferences(enabled: bool) -> None:
@@ -389,7 +395,7 @@ def cli(ctx: click.Context, traceback: bool) -> None:
     Side Effects
         Mutates :mod:`lib_cli_exit_tools.config` to reflect the requested
         traceback mode, including ``traceback_force_color`` when tracebacks are
-        enabled.
+        enabled. Initializes lib_log_rich runtime if needed.
 
     Examples
     --------
@@ -401,6 +407,9 @@ def cli(ctx: click.Context, traceback: bool) -> None:
     >>> "Hello World" in result.output
     True
     """
+
+    # Initialize logging before any commands execute
+    init_logging()
 
     _record_traceback_choice(ctx, enabled=traceback)
     _announce_traceback_choice(traceback)
@@ -434,21 +443,125 @@ def cli_main() -> None:
 def cli_info() -> None:
     """Print resolved metadata so users can inspect installation details."""
 
-    __init__conf__.print_info()
+    with lib_log_rich.runtime.bind(job_id="cli-info", extra={"command": "info"}):
+        logger.info("Displaying package information")
+        __init__conf__.print_info()
 
 
 @cli.command("hello", context_settings=CLICK_CONTEXT_SETTINGS)
 def cli_hello() -> None:
     """Demonstrate the success path by emitting the canonical greeting."""
 
-    emit_greeting()
+    with lib_log_rich.runtime.bind(job_id="cli-hello", extra={"command": "hello"}):
+        logger.info("Executing hello command")
+        emit_greeting()
 
 
 @cli.command("fail", context_settings=CLICK_CONTEXT_SETTINGS)
 def cli_fail() -> None:
     """Trigger the intentional failure helper to test error handling."""
 
-    raise_intentional_failure()
+    with lib_log_rich.runtime.bind(job_id="cli-fail", extra={"command": "fail"}):
+        logger.warning("Executing intentional failure command")
+        raise_intentional_failure()
+
+
+@cli.command("config", context_settings=CLICK_CONTEXT_SETTINGS)
+@click.option(
+    "--format",
+    type=click.Choice(["human", "json"], case_sensitive=False),
+    default="human",
+    help="Output format (human-readable or JSON)",
+)
+@click.option(
+    "--section",
+    type=str,
+    default=None,
+    help="Show only a specific configuration section (e.g., 'lib_log_rich')",
+)
+def cli_config(format: str, section: Optional[str]) -> None:
+    """Display the current merged configuration from all sources.
+
+    Shows configuration loaded from:
+    - Default config (built-in)
+    - Application config (/etc/xdg/bitranox-template-cli-app-config-log/config.toml)
+    - User config (~/.config/bitranox-template-cli-app-config-log/config.toml)
+    - .env files
+    - Environment variables (BITRANOX_TEMPLATE_CLI_APP_CONFIG_LOG_*)
+
+    Precedence: defaults → app → host → user → dotenv → env
+    """
+
+    with lib_log_rich.runtime.bind(job_id="cli-config", extra={"command": "config", "format": format}):
+        logger.info("Displaying configuration", extra={"format": format, "section": section})
+        display_config(format=format, section=section)
+
+
+@cli.command("config-deploy", context_settings=CLICK_CONTEXT_SETTINGS)
+@click.option(
+    "--target",
+    "targets",
+    type=click.Choice(["app", "host", "user"], case_sensitive=False),
+    multiple=True,
+    required=True,
+    help="Target configuration layer(s) to deploy to (can specify multiple)",
+)
+@click.option(
+    "--force",
+    is_flag=True,
+    default=False,
+    help="Overwrite existing configuration files",
+)
+def cli_config_deploy(targets: tuple[str, ...], force: bool) -> None:
+    """Deploy default configuration to system or user directories.
+
+    Creates configuration files in platform-specific locations:
+
+    \b
+    - app:  System-wide application config (requires privileges)
+    - host: System-wide host config (requires privileges)
+    - user: User-specific config (~/.config on Linux)
+
+    By default, existing files are not overwritten. Use --force to overwrite.
+
+    Examples:
+
+    \b
+    # Deploy to user config directory
+    $ bitranox-template-cli-app-config-log config-deploy --target user
+
+    \b
+    # Deploy to both app and user directories
+    $ bitranox-template-cli-app-config-log config-deploy --target app --target user
+
+    \b
+    # Force overwrite existing config
+    $ bitranox-template-cli-app-config-log config-deploy --target user --force
+    """
+
+    with lib_log_rich.runtime.bind(job_id="cli-config-deploy", extra={"command": "config-deploy", "targets": targets, "force": force}):
+        logger.info("Deploying configuration", extra={"targets": targets, "force": force})
+
+        try:
+            deployed_paths = deploy_configuration(targets=list(targets), force=force)
+
+            if deployed_paths:
+                click.echo("\nConfiguration deployed successfully:")
+                for path in deployed_paths:
+                    click.echo(f"  ✓ {path}")
+            else:
+                click.echo("\nNo files were created (all target files already exist).")
+                click.echo("Use --force to overwrite existing configuration files.")
+
+        except PermissionError as exc:
+            logger.error("Permission denied when deploying configuration", extra={"error": str(exc)})
+            click.echo(f"\nError: Permission denied. {exc}", err=True)
+            click.echo("Hint: System-wide deployment (--target app/host) may require sudo.", err=True)
+            raise SystemExit(1)
+        except Exception as exc:
+            logger.error("Failed to deploy configuration", extra={"error": str(exc), "error_type": type(exc).__name__})
+            click.echo(f"\nError: Failed to deploy configuration: {exc}", err=True)
+            raise SystemExit(1)
 
 
 def main(
@@ -481,8 +594,10 @@ def main(
 
     Side Effects
         Mutates the global traceback configuration while the CLI runs.
+        Initializes and shuts down the lib_log_rich runtime.
     """
 
+    init_logging()
     previous_state = snapshot_traceback_state()
     try:
         return _run_cli_via_exit_tools(
@@ -492,6 +607,7 @@ def main(
         )
     finally:
         _restore_when_requested(previous_state, restore_traceback)
+        lib_log_rich.runtime.shutdown()
 
 
 def _restore_when_requested(state: TracebackState, should_restore: bool) -> None:
