@@ -6,7 +6,7 @@
 #   - Host-level config: /Library/Application Support/bitranox/Bitranox Template CLI App Config Log/config.toml (macOS)
 #   - User-level config: ~/.config/bitranox-template-cli-app-config-log/config.toml (Linux)
 #   - .env files: .env in current directory or parent directories
-#   - Environment variables: Prefix with BITRANOX_TEMPLATE_CLI_APP_CONFIG_LOG_
+#   - Environment variables: Prefix with BITRANOX_TEMPLATE_CLI_APP_CONFIG_LOG___
 #
 # Precedence (lowest to highest): defaults → app → host → user → dotenv → env
 
@@ -17,7 +17,7 @@
 # Documentation: https://github.com/bitranox/lib_log_rich
 # Settings are loaded via lib_layered_config and can be overridden via:
 #   - Host/User config files (see precedence list at top)
-#   - Environment variables: BITRANOX_TEMPLATE_CLI_APP_CONFIG_LOG_* (based on slug)
+#   - Environment variables: BITRANOX_TEMPLATE_CLI_APP_CONFIG_LOG___* (based on slug)
 #
 # IMPORTANT: Environment Variable Naming
 # ---------------------------------------
@@ -32,16 +32,16 @@
 #   Use these for runtime overrides (e.g., in CI/CD, debugging).
 #
 # Method 2: lib_layered_config environment variables
-#   BITRANOX_TEMPLATE_CLI_APP_CONFIG_LOG_LIB_LOG_RICH_CONSOLE_LEVEL=DEBUG
-#   BITRANOX_TEMPLATE_CLI_APP_CONFIG_LOG_LIB_LOG_RICH_ENABLE_GRAYLOG=true
+#   BITRANOX_TEMPLATE_CLI_APP_CONFIG_LOG___LIB_LOG_RICH__CONSOLE_LEVEL=DEBUG
+#   BITRANOX_TEMPLATE_CLI_APP_CONFIG_LOG___LIB_LOG_RICH__ENABLE_GRAYLOG=true
 #   etc.
 #
-#   Format: BITRANOX_TEMPLATE_CLI_APP_CONFIG_LOG_<section>_<setting>
+#   Format: <SLUG>___<SECTION>__<KEY>=<VALUE>
 #   These are merged via lib_layered_config before init().
 #
 # Precedence (lowest to highest):
 #   defaults → app config → host config → user config → .env file →
-#   BITRANOX_TEMPLATE_CLI_APP_CONFIG_LOG_* env vars → LOG_* env vars
+#   BITRANOX_TEMPLATE_CLI_APP_CONFIG_LOG___* env vars → LOG_* env vars
 #
 # Recommendation: Use LOG_* for simplicity and maximum precedence
 #

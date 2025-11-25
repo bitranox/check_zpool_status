@@ -135,7 +135,8 @@ LOG_ENABLE_GRAYLOG=true LOG_GRAYLOG_ENDPOINT="logs.example.com:12201" bitranox-t
 
 **Method 2: Application-prefixed variables**
 ```bash
-BITRANOX_TEMPLATE_CLI_APP_CONFIG_LOG_LIB_LOG_RICH_CONSOLE_LEVEL=DEBUG bitranox-template-cli-app-config-log hello
+# Format: <SLUG>___<SECTION>__<KEY>=<VALUE>
+BITRANOX_TEMPLATE_CLI_APP_CONFIG_LOG___LIB_LOG_RICH__CONSOLE_LEVEL=DEBUG bitranox-template-cli-app-config-log hello
 ```
 
 #### .env File Support

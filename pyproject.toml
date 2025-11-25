@@ -1,6 +1,6 @@
 [project]
 name = "bitranox_template_cli_app_config_log"
-version = "0.0.1"
+version = "1.0.0"
 description = "Template CLI application with configuration management and structured logging"
 readme = "README.md"
 requires-python = ">=3.13"
@@ -8,7 +8,7 @@ dependencies = [
     "rich-click>=1.9.4",
     "lib_cli_exit_tools>=2.1.0",
     "lib_log_rich>=5.3.1",
-    "lib_layered_config>=2.0.0",
+    "lib_layered_config>=3.0.0",
 ]
 license = { text = "MIT" }
 authors = [{ name = "bitranox", email = "bitranox@gmail.com" }]
