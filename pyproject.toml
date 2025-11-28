@@ -47,7 +47,7 @@ bitranox_template_cli_app_config_log = "bitranox_template_cli_app_config_log.cli
 bitranox-template-cli-app-config-log = "bitranox_template_cli_app_config_log.cli:main"
 
 [build-system]
-requires = ["hatchling>=1.27.0"]
+requires = ["hatchling>=1.28.0"]
 build-backend = "hatchling.build"
 
 
