@@ -99,13 +99,14 @@ def init_logging() -> None:
         _runtime_config = _build_runtime_config()
         lib_log_rich.runtime.init(_runtime_config)
 
-        # Bridge standard logging to lib_log_rich using the same level as console
-        logger_level = _runtime_config.console_level
+        # Bridge standard logging to lib_log_rich with DEBUG level
+        # This ensures the root logger captures all log messages and doesn't filter
+        # anything before lib_log_rich handlers can apply their own level thresholds
+        # (console, journald, graylog each filter independently based on their config)
         lib_log_rich.runtime.attach_std_logging(
-            logger_level=logger_level,
+            logger_level="DEBUG",
             propagate=False,
         )
-
 
 __all__ = [
     "init_logging",
