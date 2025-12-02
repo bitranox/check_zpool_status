@@ -1,3 +1,5 @@
+"""CLI interface for the automation scripts toolbox."""
+
 from __future__ import annotations
 
 import os
@@ -33,7 +35,6 @@ _DEFAULT_REMOTE = get_default_remote()
 
 def env_token(name: str) -> str | None:
     """Return an environment variable stripped of surrounding whitespace."""
-
     raw = os.getenv(name)
     if raw is None:
         return None
@@ -50,7 +51,6 @@ def choose_token(
     default: str,
 ) -> str:
     """Pick the first non-empty token, ensuring it belongs to the allowed family."""
-
     for candidate in (option, *fallbacks):
         if candidate is None:
             continue
@@ -64,7 +64,6 @@ def choose_token(
 
 def coverage_choice(option: str | None) -> str:
     """Resolve the coverage mode using CLI flag, environment, then default."""
-
     return choose_token(
         option,
         fallbacks=(env_token("COVERAGE"),),
@@ -76,7 +75,6 @@ def coverage_choice(option: str | None) -> str:
 
 def part_choice(option: str | None) -> str:
     """Resolve the version part to bump."""
-
     return choose_token(
         option,
         fallbacks=(env_token("PART"),),
@@ -88,7 +86,6 @@ def part_choice(option: str | None) -> str:
 
 def remote_choice(option: str | None) -> str:
     """Resolve the git remote for push-like workflows."""
-
     return option or env_token("REMOTE") or _DEFAULT_REMOTE
 
 

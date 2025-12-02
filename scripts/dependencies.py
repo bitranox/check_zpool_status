@@ -1,23 +1,19 @@
 """Check pyproject.toml dependencies against latest PyPI versions.
 
-Purpose
--------
-Scan all dependency specifications in ``pyproject.toml`` and compare them
+Scans all dependency specifications in ``pyproject.toml`` and compares them
 against the latest available versions on PyPI. This helps keep dependencies
 up-to-date and identifies potential upgrades.
 
-Contents
---------
-* ``DependencyInfo`` – captures a dependency's current constraint and latest version.
-* ``check_dependencies`` – main entry point that checks all dependencies.
-* ``print_report`` – renders a formatted report of dependency status.
-* ``update_dependencies`` – updates outdated dependencies to latest versions.
+This module contains:
+    - ``DependencyInfo``: captures a dependency's current constraint and latest version.
+    - ``check_dependencies``: main entry point that checks all dependencies.
+    - ``print_report``: renders a formatted report of dependency status.
+    - ``update_dependencies``: updates outdated dependencies to latest versions.
 
-System Role
------------
-Development automation helper that sits alongside other scripts. It queries
-PyPI via its JSON API to retrieve latest package versions without requiring
-additional dependencies.
+Note:
+    Development automation helper that sits alongside other scripts. It queries
+    PyPI via its JSON API to retrieve latest package versions without requiring
+    additional dependencies.
 """
 
 from __future__ import annotations

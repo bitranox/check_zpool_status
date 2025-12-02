@@ -1,24 +1,20 @@
 """Automation target metadata shared by CLI helpers and interactive tools.
 
-Purpose
--------
-Provide a single source of truth for the project's automation targets so the
+Provides a single source of truth for the project's automation targets so the
 command-line interface, Makefile delegations, and the Textual TUI all present
 consistent names, descriptions, and environment-based defaults.
 
-Contents
---------
-* ``ParamSpec`` – describes tunable environment parameters exposed to users.
-* ``TargetSpec`` – captures a Make/CLI target and its description.
-* ``get_targets`` – returns the current targets with environment defaults.
-* ``iter_help_rows`` – yields ``(name, description)`` pairs for help output.
+This module contains:
+    - ``ParamSpec``: describes tunable environment parameters exposed to users.
+    - ``TargetSpec``: captures a Make/CLI target and its description.
+    - ``get_targets``: returns the current targets with environment defaults.
+    - ``iter_help_rows``: yields ``(name, description)`` pairs for help output.
 
-System Role
------------
-Keeps automation metadata aligned with documentation and developer workflow
-guidance by centralising the definitions referenced by ``scripts.menu`` and
-``scripts.help``. This reduces duplication and ensures future changes remain
-cohesive across interfaces.
+Note:
+    Keeps automation metadata aligned with documentation and developer workflow
+    guidance by centralising the definitions referenced by ``scripts.menu`` and
+    ``scripts.help``. This reduces duplication and ensures future changes remain
+    cohesive across interfaces.
 """
 
 from __future__ import annotations
@@ -61,14 +57,12 @@ class TargetSpec:
 
 def _env_default(name: str, fallback: str | None = None) -> str | None:
     """Return the environment variable value when set, otherwise fallback."""
-
     value = os.getenv(name)
     return value if value is not None and value != "" else fallback
 
 
 def _build_targets() -> tuple[TargetSpec, ...]:
     """Create the immutable collection of automation targets."""
-
     return (
         TargetSpec("install", "Editable install", ()),
         TargetSpec("dev", "Editable install with dev extras", ()),
@@ -190,13 +184,11 @@ def _build_targets() -> tuple[TargetSpec, ...]:
 
 def get_targets() -> tuple[TargetSpec, ...]:
     """Return the current automation targets with environment defaults."""
-
     return _build_targets()
 
 
 def iter_help_rows(targets: Iterable[TargetSpec] | None = None) -> Iterator[tuple[str, str]]:
     """Yield ``(name, description)`` tuples for help/summary displays."""
-
     items = targets if targets is not None else get_targets()
     for target in items:
         yield target.name, target.description

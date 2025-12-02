@@ -1,3 +1,5 @@
+"""Build wheel and sdist artifacts for the project."""
+
 from __future__ import annotations
 
 import shutil
@@ -32,7 +34,6 @@ def _purge_dist(dist_dir: Path = DIST_DIR) -> None:
 
 def build_artifacts() -> None:
     """Build Python wheel and sdist artifacts."""
-
     _purge_dist()
     sync_metadata_module(PROJECT)
     click.echo("[build] Building wheel/sdist via python -m build")

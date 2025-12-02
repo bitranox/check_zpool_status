@@ -1,20 +1,16 @@
 """Configuration display functionality for CLI config command.
 
-Purpose
--------
 Provides the business logic for displaying merged configuration from all
 sources in human-readable or JSON format. Keeps CLI layer thin by handling
 all formatting and display logic here.
 
-Contents
---------
-* :func:`display_config` – displays configuration in requested format
+This module contains:
+    - :func:`display_config`: displays configuration in requested format.
 
-System Role
------------
-Lives in the behaviors layer. The CLI command delegates to this module for
-all configuration display logic, keeping presentation concerns separate from
-command-line argument parsing.
+Note:
+    Lives in the behaviors layer. The CLI command delegates to this module for
+    all configuration display logic, keeping presentation concerns separate from
+    command-line argument parsing.
 """
 
 from __future__ import annotations
@@ -30,51 +26,40 @@ from .config import get_config
 def display_config(*, format: str = "human", section: str | None = None) -> None:
     """Display the current merged configuration from all sources.
 
-    Why
-        Users need visibility into the effective configuration loaded from
-        defaults, app configs, host configs, user configs, .env files, and
-        environment variables.
+    Provides visibility into the effective configuration loaded from
+    defaults, app configs, host configs, user configs, .env files, and
+    environment variables. Loads configuration via get_config() and outputs
+    it in the requested format.
 
-    What
-        Loads configuration via get_config() and outputs it in the requested
-        format. Supports filtering to a specific section and both human-readable
-        and JSON output formats.
+    Args:
+        format: Output format: "human" for TOML-like display or "json" for JSON.
+            Defaults to "human".
+        section: Optional section name to display only that section. When None,
+            displays all configuration.
 
-    Parameters
-    ----------
-    format:
-        Output format: "human" for TOML-like display or "json" for JSON.
-        Defaults to "human".
-    section:
-        Optional section name to display only that section. When None, displays
-        all configuration.
+    Raises:
+        SystemExit: With code 1 if requested section doesn't exist.
 
-    Side Effects
+    Note:
         Writes formatted configuration to stdout via click.echo().
-        Raises SystemExit(1) if requested section doesn't exist.
+        The human-readable format mimics TOML syntax for consistency with the
+        configuration file format. JSON format provides machine-readable output
+        suitable for parsing by other tools.
 
-    Notes
-    -----
-    The human-readable format mimics TOML syntax for consistency with the
-    configuration file format. JSON format provides machine-readable output
-    suitable for parsing by other tools.
+    Example:
+        >>> display_config()  # doctest: +SKIP
+        [lib_log_rich]
+          service = "bitranox_template_cli_app_config_log"
+          environment = "prod"
 
-    Examples
-    --------
-    >>> display_config()  # doctest: +SKIP
-    [lib_log_rich]
-      service = "bitranox_template_cli_app_config_log"
-      environment = "prod"
-
-    >>> display_config(format="json")  # doctest: +SKIP
-    {
-      "lib_log_rich": {
-        "service": "bitranox_template_cli_app_config_log",
-        "environment": "prod"
-      }
-    }
+        >>> display_config(format="json")  # doctest: +SKIP
+        {
+          "lib_log_rich": {
+            "service": "bitranox_template_cli_app_config_log",
+            "environment": "prod"
+          }
+        }
     """
-
     config = get_config()
 
     # Output in requested format

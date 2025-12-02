@@ -1,3 +1,5 @@
+"""Bump project version and update changelog."""
+
 from __future__ import annotations
 
 import sys
@@ -16,7 +18,6 @@ def bump(
     changelog: Path = Path("CHANGELOG.md"),
 ) -> None:
     """Bump the project version and update the changelog."""
-
     args = [sys.executable, "scripts/bump_version.py"]
     if version:
         args += ["--version", version]

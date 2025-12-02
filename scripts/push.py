@@ -1,3 +1,5 @@
+"""Run checks, commit changes, and push the current branch."""
+
 from __future__ import annotations
 
 import os
@@ -242,7 +244,6 @@ def _check_installed_dependencies() -> None:
 
 def push(*, remote: str = _DEFAULT_REMOTE, message: str | None = None) -> None:
     """Run checks, commit changes, and push the current branch."""
-
     # Step 0: Ensure pip is up-to-date
     _check_and_update_pip()
 

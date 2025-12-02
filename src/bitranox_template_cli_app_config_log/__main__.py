@@ -1,24 +1,20 @@
 """Module entry point ensuring SystemExit semantics match project standards.
 
-Purpose
--------
-Provide the ``python -m bitranox_template_cli_app_config_log`` path mandated by the
+Provides the ``python -m bitranox_template_cli_app_config_log`` path mandated by the
 project's packaging guidelines. The wrapper delegates to
 :func:`bitranox_template_cli_app_config_log.cli.main` so that module execution mirrors the
 installed console script, including traceback handling and exit-code mapping.
 
-Contents
---------
-* :func:`_open_cli_session` – wires ``cli_session`` with the agreed limits.
-* :func:`_command_to_run` / :func:`_command_name` – expose the command and label
-  used by the module entry.
-* :func:`_module_main` – drives execution and returns the exit code.
+This module contains:
+    - :func:`_open_cli_session`: wires ``cli_session`` with the agreed limits.
+    - :func:`_command_to_run` / :func:`_command_name`: expose the command and label
+      used by the module entry.
+    - :func:`_module_main`: drives execution and returns the exit code.
 
-System Role
------------
-Lives in the adapters layer. It bridges CPython's module execution entry point
-to the shared CLI helper while reusing the same ``cli_session`` orchestration
-documented in ``docs/systemdesign/module_reference.md``.
+Note:
+    Lives in the adapters layer. It bridges CPython's module execution entry point
+    to the shared CLI helper while reusing the same ``cli_session`` orchestration
+    documented in ``docs/systemdesign/module_reference.md``.
 """
 
 from __future__ import annotations
@@ -48,17 +44,14 @@ logger = logging.getLogger(__name__)
 def _open_cli_session() -> ContextManager[CommandRunner]:
     """Return the configured ``cli_session`` context manager.
 
-    Why
-        ``cli_session`` wires ``lib_cli_exit_tools`` with the tracing limits we
-        want for module execution. Wrapping it keeps the configuration in a
-        single place.
+    ``cli_session`` wires ``lib_cli_exit_tools`` with the tracing limits we
+    want for module execution. Wrapping it keeps the configuration in a
+    single place.
 
-    Outputs
-        ContextManager[CommandRunner]:
-            Context manager that yields the callable responsible for invoking
-            the Click command.
+    Returns:
+        Context manager that yields the callable responsible for invoking
+        the Click command.
     """
-
     return cli_session(
         summary_limit=TRACEBACK_SUMMARY_LIMIT,
         verbose_limit=TRACEBACK_VERBOSE_LIMIT,
@@ -68,46 +61,40 @@ def _open_cli_session() -> ContextManager[CommandRunner]:
 def _command_to_run() -> click.Command:
     """Expose the click command that powers the module entry.
 
-    Why
-        Keeps the module entry explicit about which command is being executed
-        while remaining easy to stub in tests.
+    Keeps the module entry explicit about which command is being executed
+    while remaining easy to stub in tests.
 
-    Outputs
-        click.Command: reference to the root CLI command group.
+    Returns:
+        Reference to the root CLI command group.
     """
-
     return cli.cli
 
 
 def _command_name() -> str:
     """Return the shell-friendly name announced by the session.
 
-    Why
-        ``lib_cli_exit_tools`` uses this value when presenting help and error
-        messages; we centralise the derivation so tests can assert against it.
+    ``lib_cli_exit_tools`` uses this value when presenting help and error
+    messages; we centralise the derivation so tests can assert against it.
 
-    Outputs
-        str: Name of the console script as published through entry points.
+    Returns:
+        Name of the console script as published through entry points.
     """
-
     return __init__conf__.shell_command
 
 
 def _module_main() -> int:
     """Execute the CLI entry point and return a normalised exit code.
 
-    Why
-        Implements ``python -m bitranox_template_cli_app_config_log`` by delegating to the
-        shared CLI composition while respecting the configured traceback
-        budgets.
+    Implements ``python -m bitranox_template_cli_app_config_log`` by delegating to the
+    shared CLI composition while respecting the configured traceback
+    budgets.
 
-    Outputs
-        int: Exit code reported by the CLI run.
+    Returns:
+        Exit code reported by the CLI run.
 
-    Side Effects
+    Note:
         Initializes and shuts down the lib_log_rich runtime.
     """
-
     init_logging()
     try:
         with _open_cli_session() as run:

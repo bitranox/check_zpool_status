@@ -1,3 +1,5 @@
+"""Interactive TUI menu for running automation targets."""
+
 from __future__ import annotations
 
 import asyncio
@@ -78,6 +80,7 @@ class MenuScreen(Screen[None]):
     selected_index: reactive[int | None] = reactive(None)
 
     def __init__(self, targets: list[TargetSpec]) -> None:
+        """Initialize the menu screen with available targets."""
         super().__init__()
         self._targets = targets
         self._param_cache: dict[str, dict[str, str]] = {}
@@ -87,6 +90,7 @@ class MenuScreen(Screen[None]):
         self._buttons: list[Button] = []
 
     def compose(self) -> ComposeResult:  # type: ignore[override]
+        """Build the menu screen layout."""
         with Container(id="backdrop"):
             with Vertical(id="window", classes="whiptail-window"):
                 yield Static(f"{PROJECT.name} — Make Targets", id="title")
@@ -110,6 +114,7 @@ class MenuScreen(Screen[None]):
         yield Footer()
 
     def on_mount(self) -> None:  # type: ignore[override]
+        """Initialize focus on mount."""
         menu = self.query_one(ListView)
         if menu.children:
             menu.index = 0
@@ -117,6 +122,7 @@ class MenuScreen(Screen[None]):
             menu.focus()
 
     def on_list_view_highlighted(self, event: ListView.Highlighted) -> None:  # type: ignore[override]
+        """Handle list item highlight changes."""
         if event.list_view.id != "menu":
             return
         index = event.list_view.index
@@ -126,6 +132,7 @@ class MenuScreen(Screen[None]):
         self._update_description(index)
 
     def on_list_view_selected(self, event: ListView.Selected) -> None:  # type: ignore[override]
+        """Handle list item selection."""
         if event.list_view.id != "menu":
             return
         index = event.list_view.index
@@ -135,6 +142,7 @@ class MenuScreen(Screen[None]):
         self.action_run()
 
     def on_key(self, event: events.Key) -> None:  # type: ignore[override]
+        """Handle keyboard navigation."""
         if event.key not in {"left", "right"}:
             return
         focused = self.focused
@@ -170,6 +178,7 @@ class MenuScreen(Screen[None]):
         self._buttons[index].focus()
 
     def on_button_pressed(self, event: Button.Pressed) -> None:  # type: ignore[override]
+        """Handle button press events."""
         if event.button.id == "run-btn":
             self.action_run()
         elif event.button.id == "edit-btn":
@@ -178,6 +187,7 @@ class MenuScreen(Screen[None]):
             self.menu_app.exit()
 
     def action_run(self) -> None:
+        """Run the currently selected target."""
         target = self._current_target()
         if target is None:
             self.menu_app.bell()
@@ -188,6 +198,7 @@ class MenuScreen(Screen[None]):
         self._launch_run(target, {})
 
     def action_edit(self) -> None:
+        """Open parameter editor for the selected target."""
         target = self._current_target()
         if target is None or not target.params:
             self.menu_app.bell()
@@ -254,6 +265,7 @@ class MenuScreen(Screen[None]):
 
     @property
     def menu_app(self) -> MenuApp:
+        """Return the parent MenuApp instance."""
         app = super().app  # pyright: ignore[reportUnknownMemberType, reportUnknownVariableType]
         assert isinstance(app, MenuApp)
         return app
@@ -265,6 +277,7 @@ class ParamScreen(Screen[Optional[dict[str, str]]]):
     BINDINGS = [("escape", "cancel", "Cancel"), ("q", "cancel", "Cancel")]
 
     def __init__(self, target: TargetSpec, preset: dict[str, str]) -> None:
+        """Initialize the parameter editor screen."""
         super().__init__()
         self._target = target
         self._preset = preset
@@ -273,6 +286,7 @@ class ParamScreen(Screen[Optional[dict[str, str]]]):
         self._ok_button: Button | None = None
 
     def compose(self) -> ComposeResult:  # type: ignore[override]
+        """Build the parameter editor layout."""
         with Container(id="backdrop"):
             with Vertical(id="window", classes="whiptail-window"):
                 yield Static(f"Parameters for {self._target.name}", id="title")
@@ -302,17 +316,21 @@ class ParamScreen(Screen[Optional[dict[str, str]]]):
         yield Footer()
 
     def on_mount(self) -> None:  # type: ignore[override]
+        """Initialize focus on mount."""
         self._focus_ok_button()
 
     def on_button_pressed(self, event: Button.Pressed) -> None:  # type: ignore[override]
+        """Handle button press events."""
         if event.button.id == "ok-btn":
             self._submit()
 
     def on_input_submitted(self, event: Input.Submitted) -> None:  # type: ignore[override]
+        """Handle input submission."""
         if event.input.id and event.input.id.startswith("input-"):
             self._submit()
 
     def action_cancel(self) -> None:
+        """Cancel and close the parameter editor."""
         self.dismiss(None)
 
     def _focus_first_input(self) -> None:
@@ -372,6 +390,7 @@ class ParamScreen(Screen[Optional[dict[str, str]]]):
 
     @property
     def menu_app(self) -> MenuApp:
+        """Return the parent MenuApp instance."""
         app = super().app  # pyright: ignore[reportUnknownMemberType, reportUnknownVariableType]
         assert isinstance(app, MenuApp)
         return app
@@ -383,6 +402,7 @@ class RunScreen(Screen[Optional[int]]):
     BINDINGS = [("escape", "cancel", "Cancel"), ("q", "cancel", "Cancel")]
 
     def __init__(self, target: TargetSpec, env: dict[str, str]) -> None:
+        """Initialize the run screen with target and environment."""
         super().__init__()
         self._target = target
         self._env = env
@@ -394,6 +414,7 @@ class RunScreen(Screen[Optional[int]]):
         self._exit_code: int | None = None
 
     def compose(self) -> ComposeResult:  # type: ignore[override]
+        """Build the run screen layout."""
         with Container(id="backdrop"):
             with Vertical(id="window", classes="whiptail-window"):
                 yield Static(f"Running: make {self._target.name}", id="title")
@@ -407,21 +428,25 @@ class RunScreen(Screen[Optional[int]]):
         yield Footer()
 
     async def on_mount(self) -> None:  # type: ignore[override]
+        """Start the target process on mount."""
         self._status.update("Running… Press Esc to cancel.")
         self._ok_button.focus()
         self._runner = asyncio.create_task(self._run_process())
 
     async def on_unmount(self) -> None:  # type: ignore[override]
+        """Clean up running process on unmount."""
         if self._runner and not self._runner.done():
             self._runner.cancel()
             with contextlib.suppress(asyncio.CancelledError):
                 await self._runner
 
     def on_button_pressed(self, event: Button.Pressed) -> None:  # type: ignore[override]
+        """Handle button press events."""
         if event.button.id == "ok-btn":
             self.dismiss(self._exit_code)
 
     def action_cancel(self) -> None:
+        """Cancel the running process or close the screen."""
         if self._proc and self._proc.returncode is None:
             self._send_cancel_signal()
             return
@@ -550,10 +575,12 @@ class MenuApp(App[None]):
     """
 
     def __init__(self) -> None:
+        """Initialize the menu application."""
         super().__init__()
         self._menu_screen = MenuScreen(list(TARGETS))
 
     def on_mount(self) -> None:  # type: ignore[override]
+        """Push the main menu screen on mount."""
         self.push_screen(self._menu_screen)
 
 
@@ -574,7 +601,6 @@ def _format_command(env: dict[str, str], cmd: list[str]) -> str:
 
 def run_menu() -> None:
     """Launch the Textual-based automation menu."""
-
     MenuApp().run()
 
 

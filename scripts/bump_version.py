@@ -1,3 +1,5 @@
+"""Version bumping utility for pyproject.toml and CHANGELOG.md."""
+
 from __future__ import annotations
 
 import argparse
@@ -7,6 +9,7 @@ from pathlib import Path
 
 
 def parse_args() -> argparse.Namespace:
+    """Parse command-line arguments for version bumping."""
     parser = argparse.ArgumentParser(description="Bump version in pyproject.toml and CHANGELOG.md")
     group = parser.add_mutually_exclusive_group()
     group.add_argument("--version", help="Explicit new version X.Y.Z")
@@ -22,6 +25,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def bump_semver(current: str, part: str) -> str:
+    """Increment the specified part of a semantic version string."""
     major, minor, patch = (int(token) for token in (current.split(".") + ["0", "0"])[:3])
     if part == "major":
         major, minor, patch = major + 1, 0, 0
@@ -58,6 +62,7 @@ def _update_changelog(changelog: Path, version: str) -> None:
 
 
 def main() -> int:
+    """Run the version bump workflow."""
     ns = parse_args()
     pyproject = Path(ns.pyproject)
     changelog = Path(ns.changelog)
